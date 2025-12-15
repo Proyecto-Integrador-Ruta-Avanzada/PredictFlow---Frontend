@@ -7,8 +7,9 @@
 }
 
 .column {
-  width: 310px;
-  height: 700px;
+  width: 360px;
+  height: auto;
+  min-height: 700px;
   background: #fafafa;
   border-radius: 8px;
   padding: 16px;
@@ -104,4 +105,17 @@
 
 .danger:hover {
   background: #b91c1c;
+}
+.addTaskButton {
+  width: 50%;
+  margin-top: 8px;
+  padding: 8px;
+  background: transparent;
+  border-radius: 14px;
+  cursor: pointer;
+  color: #292a2c;
+
+  &:hover {
+    background: #1c77d3;
+  }
 }

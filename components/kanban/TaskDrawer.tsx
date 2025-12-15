@@ -19,9 +19,11 @@ export default function TaskDrawer({
   onSave,
   onDelete,
 }: Props) {
-  const [form, setForm] = useState<Partial<Task>>(task ?? {});
+  const [form, setForm] = useState<Partial<Task>>(() => task ?? {});
 
   if (!open || !task) return null;
+
+  const isNewTask = !task.title;
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -34,11 +36,11 @@ export default function TaskDrawer({
 
   const handleSave = () => {
     onSave(task.id, {
-      title: form.title,
+      title: form.title?.trim() || "Nueva tarea",
       description: form.description,
       status: form.status,
       risk: form.risk,
-      estimationHours: Number(form.estimationHours),
+      estimationHours: Number(form.estimationHours) || 0,
       assignee: form.assignee,
     });
     onClose();
@@ -50,6 +52,8 @@ export default function TaskDrawer({
         <input
           className={styles.titleInput}
           name="title"
+          placeholder="Título de la tarea"
+          autoFocus
           value={form.title || ""}
           onChange={handleChange}
         />
@@ -114,23 +118,25 @@ export default function TaskDrawer({
         </label>
 
         <div className={styles.actions}>
-          <button onClick={onClose}>Cerrar</button>
+          <button onClick={onClose}>Cancelar</button>
 
           <button className={styles.primary} onClick={handleSave}>
-            Guardar cambios
+            {isNewTask ? "Crear tarea" : "Guardar cambios"}
           </button>
 
-          <button
-            className={styles.danger}
-            onClick={() => {
-              if (confirm("¿Eliminar esta tarea?")) {
-                onDelete();
-                onClose();
-              }
-            }}
-          >
-            Eliminar tarea
-          </button>
+          {!isNewTask && (
+            <button
+              className={styles.danger}
+              onClick={() => {
+                if (confirm("¿Eliminar esta tarea?")) {
+                  onDelete();
+                  onClose();
+                }
+              }}
+            >
+              Eliminar tarea
+            </button>
+          )}
         </div>
       </div>
     </div>

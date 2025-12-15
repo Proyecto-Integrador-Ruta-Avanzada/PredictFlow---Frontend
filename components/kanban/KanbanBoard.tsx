@@ -30,7 +30,15 @@ export default function KanbanBoard() {
     })
   );
 
-  const { tasks, getColumns, moveTask, updateTask, deleteTask } = useKanban();
+  const {
+    tasks,
+    getColumns,
+    moveTask,
+    updateTask,
+    deleteTask,
+    addTask,
+  } = useKanban();
+
   const cols = getColumns();
 
   const [selectedTask, setSelectedTask] = useState<any | null>(null);
@@ -44,6 +52,19 @@ export default function KanbanBoard() {
   const closeDrawer = () => {
     setDrawerOpen(false);
     setSelectedTask(null);
+  };
+
+  const createNewTask = () => {
+    openDrawer({
+      id: crypto.randomUUID(),
+      title: "",
+      description: "",
+      status: "todo",
+      risk: "low",
+      estimationHours: 0,
+      assignee: "",
+      order: cols.todo.length,
+    });
   };
 
   const columnIds: Record<Status, string> = {
@@ -67,7 +88,6 @@ export default function KanbanBoard() {
     const activeId = active.id as string;
     const overId = over.id as string;
 
-    // 🟢 encontrar columnas
     const sourceColumn = (Object.keys(taskIds) as Status[]).find((col) =>
       taskIds[col].includes(activeId)
     );
@@ -76,7 +96,6 @@ export default function KanbanBoard() {
       taskIds[col].includes(overId)
     );
 
-    // 🟥 mover a columna vacía
     if (overId.startsWith("column-")) {
       const newStatus = overId.replace("column-", "") as Status;
       await moveTask(activeId, newStatus, taskIds[newStatus].length);
@@ -85,7 +104,6 @@ export default function KanbanBoard() {
 
     if (!sourceColumn || !targetColumn) return;
 
-    // 🟡 REORDENAR DENTRO DE LA MISMA COLUMNA
     if (sourceColumn === targetColumn) {
       const oldIndex = taskIds[sourceColumn].indexOf(activeId);
       const newIndex = taskIds[targetColumn].indexOf(overId);
@@ -98,7 +116,6 @@ export default function KanbanBoard() {
         newIndex
       );
 
-      // 🔁 actualizar orden de cada task
       for (let i = 0; i < reordered.length; i++) {
         await updateTask(reordered[i], { order: i });
       }
@@ -106,7 +123,6 @@ export default function KanbanBoard() {
       return;
     }
 
-    // 🔵 mover entre columnas
     const newIndex = taskIds[targetColumn].indexOf(overId);
     await moveTask(activeId, targetColumn, newIndex);
   };
@@ -114,6 +130,23 @@ export default function KanbanBoard() {
   const handleDeleteTask = () => {
     if (!selectedTask) return;
     deleteTask(selectedTask.id);
+    closeDrawer();
+  };
+
+  const handleSaveTask = (taskId: string, patch: any) => {
+    const exists = tasks.some((t) => t.id === taskId);
+
+    if (exists) {
+      updateTask(taskId, patch);
+    } else {
+      addTask({
+        id: taskId,
+        ...patch,
+        status: "todo",
+        order: cols.todo.length,
+      });
+    }
+
     closeDrawer();
   };
 
@@ -143,6 +176,15 @@ export default function KanbanBoard() {
                 />
               ))}
             </SortableContext>
+
+            {status === "todo" && (
+              <button
+                className={styles.addTaskButton}
+                onClick={createNewTask}
+              >
+                + Nueva tarea
+              </button>
+            )}
           </KanbanColumn>
         ))}
 
@@ -152,7 +194,7 @@ export default function KanbanBoard() {
             open={drawerOpen}
             task={selectedTask}
             onClose={closeDrawer}
-            onSave={updateTask}
+            onSave={handleSaveTask}
             onDelete={handleDeleteTask}
           />
         )}
