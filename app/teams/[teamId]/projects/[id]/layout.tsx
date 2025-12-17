@@ -2,12 +2,14 @@ import Sidebar from "@/components/layout/Sidebar";
 import styles from "@/styles/projectLayout.module.scss";
 import { ProjectProvider } from "@/context/ProjectContext";
 
+type Params = { teamId: string; id: string };
+
 export default async function ProjectLayout({
   children,
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ id: string }>;
+  params: Promise<Params>;
 }) {
   const { id } = await params;
 
