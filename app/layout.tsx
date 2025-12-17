@@ -12,8 +12,9 @@ const queryClient = new QueryClient();
 export default function RootLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
-  const authPages = ["/login", "/register"];
-  const hideLayout = authPages.includes(pathname);
+
+  const publicPages = ["/", "/plans", "/login", "/register"];
+  const hideLayout = publicPages.includes(pathname);
 
   return (
     <html lang="es">

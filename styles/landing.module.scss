@@ -1,0 +1,229 @@
+.page {
+  min-height: 100vh;
+  position: relative;
+  background:
+    radial-gradient(1100px 520px at 10% 10%, rgba(79, 70, 229, 0.22), transparent 60%),
+    radial-gradient(900px 420px at 95% 30%, rgba(99, 102, 241, 0.18), transparent 55%),
+    var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Fondo visual del header */
+.page::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 90px;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.92),
+    rgba(255, 255, 255, 0.7),
+    transparent
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* HEADER */
+.header {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logoWrapper {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.75);
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(17, 24, 39, 0.1);
+  box-shadow: 0 10px 26px rgba(17, 24, 39, 0.1);
+}
+
+.name {
+  display: flex;
+  flex-direction: column;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: #111827;
+}
+
+.tagline {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.navLink {
+  text-decoration: none;
+  color: #111827;
+  opacity: 0.85;
+  font-weight: 700;
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+.navLink:hover {
+  background: rgba(17, 24, 39, 0.06);
+}
+
+.navCta {
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent), rgba(79, 70, 229, 0.65));
+  color: white;
+  font-weight: 900;
+  text-decoration: none;
+  box-shadow: 0 14px 34px rgba(79, 70, 229, 0.26);
+}
+
+/* MAIN */
+.main {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 22px 18px 44px;
+}
+
+/* HERO */
+.hero {
+  position: relative;
+  margin-top: 18px;
+  padding: 32px 26px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  box-shadow: 0 20px 50px rgba(17, 24, 39, 0.08);
+}
+
+.heroCorner {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+}
+
+.cornerBtn {
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+  color: #111827;
+  background: rgba(17, 24, 39, 0.06);
+  border: 1px solid rgba(17, 24, 39, 0.08);
+}
+
+.kicker {
+  display: inline-block;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(79, 70, 229, 0.1);
+  font-weight: 900;
+}
+
+.title {
+  margin-top: 14px;
+  font-size: 52px;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 1.05;
+}
+
+.subtitle {
+  margin-top: 14px;
+  max-width: 760px;
+  color: #374151;
+  line-height: 1.7;
+}
+
+.actions {
+  margin-top: 20px;
+}
+
+.primaryBtn {
+  height: 46px;
+  padding: 0 18px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent), rgba(79, 70, 229, 0.7));
+  color: white;
+  font-weight: 900;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 16px 36px rgba(79, 70, 229, 0.28);
+}
+
+/* CARDS */
+.grid {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.card {
+  padding: 20px;
+  border-radius: 22px;
+  background: var(--card-bg);
+  border: 1px solid rgba(17, 24, 39, 0.08);
+}
+
+.card h2 {
+  font-weight: 900;
+}
+
+.card p,
+.card ul {
+  margin-top: 10px;
+  color: #374151;
+  line-height: 1.7;
+}
+
+/* FOOTER */
+.footer {
+  margin-top: auto;
+  padding: 18px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.dot {
+  opacity: 0.6;
+}
+
+@media (max-width: 960px) {
+  .title {
+    font-size: 40px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
