@@ -32,17 +32,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const acceptInvitation = (email: string) => {
     setInvitations(prev => prev.filter(inv => inv.email !== email));
 
-    setMembers(prev => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        name: email.split("@")[0],
-        email,
-        projects: [],
-        currentLoad: 0,
-        performance: 0,
-      },
-    ]);
+    setMembers((prev) => [
+    ...prev,
+    {
+      id: crypto.randomUUID(),
+      name: email.split("@")[0],
+      email,
+      role: "admin",
+      projects: [],
+      currentLoad: 0,
+      performance: 0,
+    },
+  ]);
   };
 
   const cancelInvitation = (id: string) => {
