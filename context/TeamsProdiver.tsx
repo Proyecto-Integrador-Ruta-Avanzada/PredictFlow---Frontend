@@ -5,6 +5,9 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import api from "@/lib/api";
 import { authService } from "@/services/auth.service";
 
+const isUuid = (v: string) =>
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
+
 export type Team = {
   id: string;
   name: string;
@@ -53,17 +56,17 @@ export function TeamsProvider({ children }: { children: React.ReactNode }) {
   const refresh = async () => {
     setIsLoading(true);
     try {
-      // Preferimos /profile/me (usa el token del interceptor).
       const me = await authService.me();
       const userId = me?.id ?? me?.userId ?? me?.data?.id;
 
-      // Algunos backends devuelven teams embebidos en /me
+      // 1) Si vienen embebidos en /me, úsalos
       const embeddedTeams = me?.teams ?? me?.user?.teams ?? [];
       if (Array.isArray(embeddedTeams) && embeddedTeams.length > 0) {
         setTeams(embeddedTeams.map(normalizeTeam));
-        return;
+        return; // ✅ el finally igual corre
       }
 
+      // 2) Si no vienen embebidos, consulta por userId
       if (userId) {
         const res = await api.get(`/api/Team/user/${userId}`);
         const list = Array.isArray(res.data) ? res.data : res.data?.items ?? [];
@@ -88,38 +91,72 @@ export function TeamsProvider({ children }: { children: React.ReactNode }) {
         return [...others, ...normalized];
       });
     } catch {
-      // si falla, no rompemos UI
+      // no rompemos UI
     }
   };
 
+  const fetchTeamsByUser = async (): Promise<Team[]> => {
+    const me = await authService.me();
+    const userId = me?.id ?? me?.userId ?? me?.data?.id;
+    if (!userId) return [];
+
+    const res = await api.get(`/api/Team/user/${userId}`);
+    const list = Array.isArray(res.data) ? res.data : res.data?.items ?? [];
+    return list.map(normalizeTeam);
+  };
+
   const createTeam = async (name: string) => {
-    const res = await api.post("/api/Team", { name });
-    const created = normalizeTeam(res.data ?? { id: crypto.randomUUID(), name });
-    setTeams((prev) => {
-      const exists = prev.some((t) => t.id === created.id);
-      return exists ? prev : [...prev, created];
-    });
+    const trimmed = name.trim();
+    if (!trimmed) throw new Error("El nombre del equipo es obligatorio");
+
+    await api.post("/api/Team", { name: trimmed });
+
+    // ✅ traer lista real y usarla
+    let normalized = await fetchTeamsByUser();
+
+    // Si por consistencia eventual aún no aparece, reintenta 1 vez
+    if (!normalized.some((t) => t.name === trimmed)) {
+      await new Promise((r) => setTimeout(r, 250));
+      normalized = await fetchTeamsByUser();
+    }
+
+    setTeams(normalized);
+
+    const created = [...normalized].reverse().find((t) => t.name === trimmed);
+    if (!created?.id) throw new Error("No pude obtener el equipo creado desde el servidor");
+
     return created;
   };
 
   const createProject = async (teamId: string, name: string) => {
-    // Swagger: POST /api/Project (ProjectRequestDto)
+    const trimmed = name.trim();
+    if (!trimmed) throw new Error("El nombre del proyecto es obligatorio");
+    if (!isUuid(teamId)) throw new Error(`teamId inválido (no es UUID): ${teamId}`);
+
+    // ✅ Backend exige description no vacío
+    const description = "Sin descripción";
+
     const res = await api.post("/api/Project", {
       teamId,
-      name,
-      description: "",
+      name: trimmed,
+      description,
     });
-    const created = normalizeProject(res.data ?? { id: crypto.randomUUID(), teamId, name }, teamId);
+
+    const created = normalizeProject(
+      res.data ?? { id: crypto.randomUUID(), teamId, name: trimmed, description },
+      teamId
+    );
+
     setProjects((prev) => {
       const exists = prev.some((p) => p.id === created.id);
       return exists ? prev : [...prev, created];
     });
+
     return created;
   };
 
   useEffect(() => {
     refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const value: TeamsContextType = useMemo(

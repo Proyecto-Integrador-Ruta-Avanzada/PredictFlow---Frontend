@@ -99,8 +99,18 @@ export function ProjectProvider({
       }
 
       // 2) sprints
-      const sp = await api.get(`/api/Sprint/project/${projectId}`);
-      const sprintList = Array.isArray(sp.data) ? sp.data : sp.data?.items ?? [];
+      let sprintList: any[] = [];
+      try {
+        const sp = await api.get(`/api/Sprint/project/${projectId}`);
+        sprintList = Array.isArray(sp.data) ? sp.data : sp.data?.items ?? [];
+      } catch (e: any) {
+        if (e?.response?.status === 404) {
+          sprintList = [];
+        } else {
+          throw e;
+        }
+      }
+
       const normalizedSprints: Sprint[] = sprintList.map((s: any) => ({
         id: safeId(s),
         name: String(s?.name ?? "Sprint"),
@@ -122,14 +132,27 @@ export function ProjectProvider({
       );
 
       // 3) board
-      const boardsRes = await api.get(`/api/Board/project/${projectId}`);
-      const boards = Array.isArray(boardsRes.data) ? boardsRes.data : boardsRes.data?.items ?? [];
+      let boards: any[] = [];
+      try {
+        const boardsRes = await api.get(`/api/Board/project/${projectId}`);
+        boards = Array.isArray(boardsRes.data) ? boardsRes.data : boardsRes.data?.items ?? [];
+      } catch (e: any) {
+        if (e?.response?.status === 404) {
+          boards = []; // ✅ no hay boards todavía
+        } else {
+          throw e;
+        }
+      }
+
       let bid = safeId(boards[0]);
+
       if (!bid) {
         const created = await api.post(`/api/Board`, { projectId, name: "Main Board" });
         bid = safeId(created.data);
       }
+
       setBoardId(bid);
+
 
       // 4) columns
       const colRes = await api.get(`/api/BoardColumn/board/${bid}`);
