@@ -59,9 +59,11 @@ export default function AcceptInvitationClient() {
   const handleAcceptInvitation = async () => {
     if (!code || !email) return;
 
+    window.location.href = "/dashboard"
     await invitationService.accept(code);
     acceptInvitation(email);
     setStatus("accepted");
+    
   };
 
   return (
