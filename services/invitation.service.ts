@@ -1,7 +1,7 @@
 import api from "@/lib/api";
 
 export interface VerifyInvitationResponse {
-  isValid: boolean;
+  codeIsValid: boolean;
   isExpired: boolean;
   alreadyAccepted: boolean;
   message: string;

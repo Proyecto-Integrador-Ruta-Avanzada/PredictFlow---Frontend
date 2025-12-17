@@ -16,6 +16,8 @@ export default function InvitationStatus({
   message,
   onAccept
 }: Props) {
+  console.log(status)
+
   if (status === "loading") {
     return (
       <div className={styles.container}>

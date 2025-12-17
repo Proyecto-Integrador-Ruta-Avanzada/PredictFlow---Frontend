@@ -34,7 +34,7 @@ export default function AcceptInvitationClient() {
 
         if (cancelled) return;
 
-        if (!result.isValid) {
+        if (!result.codeIsValid) {
           setStatus("invalid");
           setMessage(result.message);
         } else if (result.alreadyAccepted) {
