@@ -60,8 +60,6 @@ export default function KanbanBoard() {
   };
 
   const createNewTask = () => {
-    if (!activeSprint) return;
-
     openDrawer({
       id: crypto.randomUUID(),
       title: "",
@@ -71,7 +69,7 @@ export default function KanbanBoard() {
       estimationHours: 0,
       assignee: "",
       order: cols.todo.length,
-      sprintId: activeSprint.id,
+      sprintId: activeSprint ? activeSprint.id : null,
     });
   };
 
@@ -149,14 +147,7 @@ export default function KanbanBoard() {
     closeDrawer();
   };
 
-  if (!activeSprint) {
-    return (
-      <div className={styles.emptyState}>
-        <h2>No hay sprint activo</h2>
-        <p>Activa un sprint para ver el tablero.</p>
-      </div>
-    );
-  }
+  // El tablero funciona incluso si no hay sprint activo (muestra todas las tareas).
 
   return (
     <DndContext

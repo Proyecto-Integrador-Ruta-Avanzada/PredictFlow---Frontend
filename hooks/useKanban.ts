@@ -14,9 +14,8 @@ export function useKanban() {
   } = useProject();
 
   const boardTasks = useMemo(() => {
-    if (!activeSprint) return [];
     return tasks
-      .filter((t) => t.sprintId === activeSprint.id)
+      .filter((t) => (activeSprint ? t.sprintId === activeSprint.id : true))
       .slice()
       .sort((a, b) => a.order - b.order);
   }, [tasks, activeSprint]);

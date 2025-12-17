@@ -5,25 +5,13 @@ import { useState } from "react";
 import { toast, Zoom, Slide } from "react-toastify";
 import { useRouter } from "next/navigation";
 import styles from "@/styles/auth.module.scss";
-
-type Team = {
-  id: string;
-  name?: string;
-};
-
-type LoginSuccessResponse = {
-  token: string;
-  user: {
-    id: string;
-    teams: Team[];
-  };
-};
+import { authService } from "@/services/auth.service";
 
 type LoginErrorResponse = {
   message: string;
 };
 
-type LoginResponse = LoginSuccessResponse | LoginErrorResponse;
+type LoginResponse = any | LoginErrorResponse;
 
 export default function LoginPage() {
   const router = useRouter();
@@ -44,45 +32,43 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
+
     setLoading(true);
 
     try {
-      const res = await fetch("https://tu-backend.com/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+      const data = (await authService.login(form.email, form.password)) as LoginResponse;
 
-      const data: LoginResponse = await res.json();
+      const token =
+        data?.token ||
+        data?.accessToken ||
+        data?.jwt ||
+        data?.data?.token ||
+        data?.data?.accessToken;
 
-      if (!res.ok) {
-        if ("message" in data) {
-          toast.error(data.message, { transition: Zoom });
-        } else {
-          toast.error("Error al iniciar sesión", { transition: Zoom });
-        }
+      if (!token) {
+        toast.error(data?.message || "No se recibió token del servidor", {
+          transition: Zoom,
+        });
         return;
       }
 
-      if ("token" in data) {
-        localStorage.setItem("token", data.token);
+      localStorage.setItem("token", token);
 
-        toast.success("Sesión iniciada correctamente", {
-          transition: Slide,
-        });
+      toast.success("Sesión iniciada correctamente", {
+        transition: Slide,
+      });
 
-        setTimeout(() => {
-          const teams = data.user.teams;
+      setTimeout(() => {
+        router.replace("/onboarding/team");
+      }, 600);
+    } catch (error: any) {
+      const backendMsg =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message;
 
-          if (teams.length === 0) {
-            router.replace("/onboarding/team");
-          } else {
-            router.replace(`/teams/${teams[0].id}`);
-          }
-        }, 600);
-      }
-    } catch {
-      toast.error("Error de conexión", {
+      toast.error(backendMsg || "Error de conexión", {
         transition: Zoom,
       });
     } finally {

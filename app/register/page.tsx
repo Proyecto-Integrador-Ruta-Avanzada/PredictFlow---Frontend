@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast, Slide, Zoom } from "react-toastify";
 import styles from "@/styles/auth.module.scss";
+import { authService } from "@/services/auth.service";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -26,36 +27,29 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
+
     setLoading(true);
 
     try {
-      // Cambiar esta URL por el backend real
-      const res = await fetch("https://tu-backend.com/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+      await authService.register(form.name, form.email, form.password);
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        toast.error(data.message || "Error al registrarse", {
-          transition: Zoom,
-        });
-        setLoading(false);
-        return;
-      }
-
-      toast.success("Cuenta creada correctamente", {
+      toast.success("Cuenta creada correctamente. Redirigiendo al login...", {
         transition: Slide,
       });
+
+      setForm({ name: "", email: "", password: "" });
 
       setTimeout(() => {
         router.replace("/login");
       }, 800);
+    } catch (error: any) {
+      const backendMsg =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message;
 
-    } catch (error) {
-      toast.error("Ocurrió un error inesperado", {
+      toast.error(backendMsg || "Ocurrió un error inesperado", {
         transition: Zoom,
       });
     } finally {
@@ -67,9 +61,7 @@ export default function RegisterPage() {
     <div className={styles.container}>
       <div className={styles.card}>
         <h1 className={styles.title}>Crear cuenta</h1>
-        <p className={styles.subtitle}>
-          Regístrate para acceder a PredictFlow
-        </p>
+        <p className={styles.subtitle}>Regístrate para acceder a PredictFlow</p>
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <input
@@ -102,12 +94,17 @@ export default function RegisterPage() {
             required
           />
 
-          <button type="submit" className={styles.buttonRegister} disabled={loading}>
+          <button
+            type="submit"
+            className={styles.buttonRegister}
+            disabled={loading}
+          >
             {loading ? "Registrando..." : "Registrarse"}
           </button>
-        <p className={styles.linkText}>
-          ¿Ya tienes cuenta? <Link href="/login">Inicia sesión</Link>
-        </p>
+
+          <p className={styles.linkText}>
+            ¿Ya tienes cuenta? <Link href="/login">Inicia sesión</Link>
+          </p>
         </form>
       </div>
     </div>

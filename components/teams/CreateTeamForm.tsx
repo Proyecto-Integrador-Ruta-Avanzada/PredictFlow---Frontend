@@ -4,16 +4,16 @@ import { useState } from "react";
 import styles from "@/styles/onboarding-team.module.scss";
 
 interface Props {
-  onCreate: (name: string) => void;
+  onCreate: (name: string) => Promise<void> | void;
 }
 
 export default function CreateTeamForm({ onCreate }: Props) {
   const [name, setName] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim() === "") return;
-    onCreate(name.trim());
+    await onCreate(name.trim());
     setName("");
   };
 

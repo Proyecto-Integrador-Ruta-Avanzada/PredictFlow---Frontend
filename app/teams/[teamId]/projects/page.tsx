@@ -4,22 +4,34 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useTeams } from "@/context/TeamsProdiver";
 import styles from "@/styles/projects.module.scss";
+import { useEffect } from "react";
 
 export default function TeamProjectsPage() {
   const params = useParams();
   let teamId = (params as any)?.teamId as string | string[] | undefined;
   if (Array.isArray(teamId)) teamId = teamId[0];
 
-  const { teams, projects } = useTeams();
+  const { teams, projects, isLoading, loadProjects } = useTeams();
   const team = teamId ? teams.find((t) => t.id === teamId) : undefined;
+
+  useEffect(() => {
+    if (teamId) loadProjects(teamId);
+  }, [teamId, loadProjects]);
 
   if (!teamId) return <div>TeamId inválido</div>;
   if (!team) {
+    if (isLoading) {
+      return (
+        <div className={styles.page} style={{ maxWidth: 720 }}>
+          <h1 className={styles.title}>Cargando…</h1>
+        </div>
+      );
+    }
     return (
       <div className={styles.page} style={{ maxWidth: 720 }}>
         <h1 className={styles.title}>Equipo no encontrado</h1>
         <p style={{ marginTop: 10, opacity: 0.8 }}>
-          Si recargaste la página, recuerda que por ahora los equipos se guardan en memoria.
+          No pude cargar el equipo desde el backend (token inválido o sin permisos).
         </p>
         <p style={{ marginTop: 10 }}>
           <Link href="/onboarding/team" style={{ textDecoration: "underline" }}>

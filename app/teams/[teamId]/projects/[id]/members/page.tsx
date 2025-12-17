@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import styles from "@/styles/members/memberTable.module.scss";
+import api from "@/lib/api";
 
 type Params = {
   teamId?: string;
@@ -24,39 +25,47 @@ export default function MembersPage() {
   const teamId = params.teamId ?? "";
   const projectId = params.id ?? "";
 
-  // ✅ Mock temporal (front only). Luego lo conectas al backend sin cambiar UI.
-  const members = useMemo<Member[]>(
-    () => [
-      {
-        id: "m1",
-        name: "Sneider",
-        email: "sneider@email.com",
-        role: "Admin",
-        projects: 1,
-        workload: "Alta",
-        performance: "Excelente",
-      },
-      {
-        id: "m2",
-        name: "Carlos Gómez",
-        email: "carlos@email.com",
-        role: "Developer",
-        projects: 1,
-        workload: "Media",
-        performance: "Buena",
-      },
-      {
-        id: "m3",
-        name: "Laura Pérez",
-        email: "laura@email.com",
-        role: "QA",
-        projects: 1,
-        workload: "Baja",
-        performance: "Buena",
-      },
-    ],
-    []
-  );
+  const [members, setMembers] = useState<Member[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      if (!teamId) {
+        setMembers([]);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const res = await api.get(`/api/Team/${teamId}/members`);
+        const list = Array.isArray(res.data) ? res.data : res.data?.items ?? [];
+
+        const mapped: Member[] = list.map((m: any) => ({
+          id: String(m?.id ?? m?.userId ?? m?._id ?? ""),
+          name: String(m?.name ?? m?.fullName ?? m?.email ?? ""),
+          email: String(m?.email ?? ""),
+          role: String(m?.role ?? m?.teamRole ?? "Member"),
+          projects: Number(m?.projectsCount ?? m?.projects?.length ?? 0) || 0,
+          workload: String(m?.workload ?? "—"),
+          performance: String(m?.performance ?? "—"),
+        }));
+
+        if (!cancelled) setMembers(mapped);
+      } catch {
+        if (!cancelled) setMembers([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [teamId]);
 
   return (
     <div className={styles.page}>
@@ -67,6 +76,9 @@ export default function MembersPage() {
       </div>
 
       <div className={styles.tableWrap}>
+        {loading ? (
+          <div style={{ opacity: 0.8 }}>Cargando miembros…</div>
+        ) : null}
         <table className={styles.table}>
           <thead>
             <tr>

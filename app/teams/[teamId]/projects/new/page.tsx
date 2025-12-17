@@ -12,7 +12,7 @@ export default function CreateProjectPage() {
 
   if (Array.isArray(teamId)) teamId = teamId[0];
 
-  const { teams, projects, createProject } = useTeams();
+  const { teams, projects, createProject, loadProjects } = useTeams();
   const router = useRouter();
   const [name, setName] = useState("");
 
@@ -21,9 +21,10 @@ export default function CreateProjectPage() {
 
   const teamProjects = projects.filter((p: Project) => p.teamId === teamId);
 
-  const handleCreateProject = () => {
+  const handleCreateProject = async () => {
     if (!name.trim()) return;
-    createProject(teamId!, name.trim());
+    await createProject(teamId!, name.trim());
+    await loadProjects(teamId!);
     setName("");
     router.push(`/teams/${teamId}/projects`);
   };
@@ -58,7 +59,7 @@ export default function CreateProjectPage() {
         </div>
 
         <div className={styles.helper}>
-          Se guarda en memoria por ahora. debo conectar backend, esto será un POST al API.
+          Se crea en el backend y luego se recarga la lista de proyectos.
         </div>
       </div>
 

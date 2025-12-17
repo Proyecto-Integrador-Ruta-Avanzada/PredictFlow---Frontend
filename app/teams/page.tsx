@@ -4,13 +4,15 @@ import Link from "next/link";
 import { useTeams } from "@/context/TeamsProdiver";
 
 export default function TeamsPage() {
-  const { teams } = useTeams();
+  const { teams, isLoading, refresh } = useTeams();
 
   return (
     <div style={{ maxWidth: 720, margin: "60px auto", padding: 24 }}>
       <h1 style={{ fontSize: 28, fontWeight: 700 }}>Mis equipos</h1>
 
-      {teams.length === 0 ? (
+      {isLoading ? (
+        <p style={{ marginTop: 16, opacity: 0.8 }}>Cargando equipos…</p>
+      ) : teams.length === 0 ? (
         <p style={{ marginTop: 16, opacity: 0.8 }}>
           Aún no tienes equipos. Crea uno en <Link href="/onboarding/team">/onboarding/team</Link>.
         </p>

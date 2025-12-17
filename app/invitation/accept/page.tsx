@@ -60,7 +60,7 @@ export default function AcceptInvitationPage() {
   const handleAcceptInvitation = async () => {
     if (!code || !email) return;
 
-    await invitationService.accept(code, email);
+    await invitationService.accept(code);
 
     acceptInvitation(email);
 

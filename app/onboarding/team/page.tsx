@@ -7,8 +7,8 @@ import styles from "@/styles/onboarding-team.module.scss";
 export default function OnboardingTeamPage() {
   const { createTeam } = useTeams();
 
-  const handleCreate = (name: string) => {
-    createTeam(name);
+  const handleCreate = async (name: string) => {
+    await createTeam(name);
   };
 
   return (
