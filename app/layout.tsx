@@ -2,11 +2,10 @@
 
 import "@/styles/globals.scss";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import Sidebar from "@/components/layout/Sidebar";
-import Topbar from "@/components/layout/Topbar";
 import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
 import { AppProvider } from "@/context/AppContext";
+import { TeamsProvider } from "@/context/TeamsProdiver"; // <-- aquí
 
 const queryClient = new QueryClient();
 
@@ -21,17 +20,17 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <QueryClientProvider client={queryClient}>
           <AppProvider>
-            {hideLayout ? (
-              <main>{children}</main>
-            ) : (
-              <div style={{ display: "flex", minHeight: "100vh" }}>
-                <Sidebar />
-                <div style={{ flex: 1 }}>
-                  <Topbar />
-                  <main>{children}</main>
+            <TeamsProvider>
+              {hideLayout ? (
+                <main>{children}</main>
+              ) : (
+                <div style={{ display: "flex", minHeight: "100vh" }}>
+                  <div style={{ flex: 1 }}>
+                    <main>{children}</main>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </TeamsProvider>
           </AppProvider>
         </QueryClientProvider>
       </body>

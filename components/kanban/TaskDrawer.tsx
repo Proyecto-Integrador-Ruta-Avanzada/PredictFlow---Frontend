@@ -1,142 +1,173 @@
 "use client";
 
-import { useState } from "react";
-import styles from "@/styles/drawer.module.scss";
-import type { Task } from "@/lib/mockData";
+import { useMemo, useState } from "react";
+import styles from "@/styles/taskDrawer.module.scss";
 
-interface Props {
+type Status = "todo" | "inprogress" | "done";
+type Risk = "low" | "medium" | "high" | "critical";
+
+type TaskShape = {
+  id: string;
+  title: string;
+  description?: string;
+  status: Status;
+  risk?: Risk;
+  estimationHours?: number;
+  assignee?: string;
+  order?: number;
+  sprintId?: string | null;
+};
+
+type Props = {
   open: boolean;
-  task: Task | null;
+  task: TaskShape;
   onClose: () => void;
-  onSave: (taskId: string, patch: Partial<Task>) => void;
+  onSave: (taskId: string, patch: Partial<TaskShape>) => void;
   onDelete: () => void;
+};
+
+export default function TaskDrawer(props: Props) {
+  const { open, task } = props;
+  if (!open) return null;
+
+  return <TaskDrawerInner key={task.id} {...props} />;
 }
 
-export default function TaskDrawer({
-  open,
-  task,
-  onClose,
-  onSave,
-  onDelete,
-}: Props) {
-  const [form, setForm] = useState<Partial<Task>>(() => task ?? {});
+function TaskDrawerInner({ task, onClose, onSave, onDelete }: Omit<Props, "open">) {
+  const initialDraft = useMemo(
+    () => ({
+      title: task.title ?? "",
+      description: task.description ?? "",
+      status: (task.status as Status) ?? "todo",
+      risk: (task.risk as Risk) ?? "low",
+      estimationHours: task.estimationHours ?? 0,
+      assignee: task.assignee ?? "",
+    }),
+    [task]
+  );
 
-  if (!open || !task) return null;
+  const [draft, setDraft] = useState(initialDraft);
+  const [error, setError] = useState("");
 
-  const isNewTask = !task.title;
+  const save = () => {
+    if (!draft.title.trim()) {
+      setError("El título es obligatorio");
+      return;
+    }
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSave = () => {
     onSave(task.id, {
-      title: form.title?.trim() || "Nueva tarea",
-      description: form.description,
-      status: form.status,
-      risk: form.risk,
-      estimationHours: Number(form.estimationHours) || 0,
-      assignee: form.assignee,
+      title: draft.title.trim(),
+      description: draft.description?.trim() || "",
+      status: draft.status,
+      risk: draft.risk,
+      estimationHours: draft.estimationHours,
+      assignee: draft.assignee?.trim() || "",
     });
+
     onClose();
   };
 
   return (
-    <div className={`${styles.drawer} ${styles.open}`}>
-      <div className={styles.header}>
-        <input
-          className={styles.titleInput}
-          name="title"
-          placeholder="Título de la tarea"
-          autoFocus
-          value={form.title || ""}
-          onChange={handleChange}
-        />
-        <button onClick={onClose}>✕</button>
-      </div>
+    <div className={styles.overlay} onClick={onClose}>
+      <div className={styles.drawer} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.header}>
+          <div>
+            <h3 className={styles.title}>Tarea</h3>
+            <div className={styles.meta}>ID: {task.id}</div>
+          </div>
 
-      <div className={styles.content}>
-        <label>
-          Descripción
+          <button className={styles.iconBtn} onClick={onClose}>
+            ✕
+          </button>
+        </div>
+
+        <div className={styles.body}>
+          <label className={styles.label}>Título</label>
+          <input
+            className={styles.input}
+            value={draft.title}
+            onChange={(e) => {
+              setError("");
+              setDraft((d) => ({ ...d, title: e.target.value }));
+            }}
+            placeholder="Ej: Implementar login"
+          />
+
+          <label className={styles.label}>Descripción</label>
           <textarea
-            name="description"
-            value={form.description || ""}
-            onChange={handleChange}
+            className={styles.textarea}
+            value={draft.description}
+            onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))}
+            placeholder="Describe la tarea…"
           />
-        </label>
 
-        <label>
-          Estado
-          <select
-            name="status"
-            value={form.status || "todo"}
-            onChange={handleChange}
-          >
-            <option value="todo">To Do</option>
-            <option value="inprogress">In Progress</option>
-            <option value="review">Review</option>
-            <option value="done">Done</option>
-          </select>
-        </label>
+          <div className={styles.grid}>
+            <div>
+              <label className={styles.label}>Estado</label>
+              <select
+                className={styles.select}
+                value={draft.status}
+                onChange={(e) => setDraft((d) => ({ ...d, status: e.target.value as Status }))}
+              >
+                <option value="todo">To Do</option>
+                <option value="inprogress">In Progress</option>
+                <option value="done">Done</option>
+              </select>
+            </div>
 
-        <label>
-          Riesgo
-          <select
-            name="risk"
-            value={form.risk || "low"}
-            onChange={handleChange}
-          >
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-            <option value="critical">Critical</option>
-          </select>
-        </label>
+            <div>
+              <label className={styles.label}>Riesgo</label>
+              <select
+                className={styles.select}
+                value={draft.risk}
+                onChange={(e) => setDraft((d) => ({ ...d, risk: e.target.value as Risk }))}
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+            </div>
+          </div>
 
-        <label>
-          Estimación (horas)
-          <input
-            type="number"
-            name="estimationHours"
-            value={form.estimationHours || ""}
-            onChange={handleChange}
-          />
-        </label>
+          <div className={styles.grid}>
+            <div>
+              <label className={styles.label}>Estimación (horas)</label>
+              <input
+                className={styles.input}
+                type="number"
+                value={draft.estimationHours}
+                onChange={(e) => setDraft((d) => ({ ...d, estimationHours: Number(e.target.value) }))}
+                min={0}
+              />
+            </div>
 
-        <label>
-          Asignado a
-          <input
-            name="assignee"
-            value={form.assignee || ""}
-            onChange={handleChange}
-          />
-        </label>
+            <div>
+              <label className={styles.label}>Asignado a</label>
+              <input
+                className={styles.input}
+                value={draft.assignee}
+                onChange={(e) => setDraft((d) => ({ ...d, assignee: e.target.value }))}
+                placeholder="Nombre"
+              />
+            </div>
+          </div>
 
-        <div className={styles.actions}>
-          <button onClick={onClose}>Cancelar</button>
+          {error && <div className={styles.error}>{error}</div>}
+        </div>
 
-          <button className={styles.primary} onClick={handleSave}>
-            {isNewTask ? "Crear tarea" : "Guardar cambios"}
+        <div className={styles.footer}>
+          <button className={styles.secondaryBtn} onClick={onClose}>
+            Cancelar
           </button>
 
-          {!isNewTask && (
-            <button
-              className={styles.danger}
-              onClick={() => {
-                if (confirm("¿Eliminar esta tarea?")) {
-                  onDelete();
-                  onClose();
-                }
-              }}
-            >
-              Eliminar tarea
-            </button>
-          )}
+          <button className={styles.dangerBtn} onClick={onDelete}>
+            Eliminar
+          </button>
+
+          <button className={styles.primaryBtn} onClick={save}>
+            Guardar
+          </button>
         </div>
       </div>
     </div>

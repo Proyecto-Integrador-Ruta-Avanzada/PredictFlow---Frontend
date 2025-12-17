@@ -6,6 +6,25 @@ import { toast, Zoom, Slide } from "react-toastify";
 import { useRouter } from "next/navigation";
 import styles from "@/styles/auth.module.scss";
 
+type Team = {
+  id: string;
+  name?: string;
+};
+
+type LoginSuccessResponse = {
+  token: string;
+  user: {
+    id: string;
+    teams: Team[];
+  };
+};
+
+type LoginErrorResponse = {
+  message: string;
+};
+
+type LoginResponse = LoginSuccessResponse | LoginErrorResponse;
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -28,43 +47,47 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // Cambiar esta URL cuando el backend me de el endpoint
       const res = await fetch("https://tu-backend.com/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
 
-      const data = await res.json();
+      const data: LoginResponse = await res.json();
 
       if (!res.ok) {
-        toast.error(data.message || "Correo o contraseña incorrectos", {
-          transition: Zoom,
-        });
-        setLoading(false);
+        if ("message" in data) {
+          toast.error(data.message, { transition: Zoom });
+        } else {
+          toast.error("Error al iniciar sesión", { transition: Zoom });
+        }
         return;
       }
 
-      // Guardar token si el backend lo envía
-      if (data.token) {
+      if ("token" in data) {
         localStorage.setItem("token", data.token);
+
+        toast.success("Sesión iniciada correctamente", {
+          transition: Slide,
+        });
+
+        setTimeout(() => {
+          const teams = data.user.teams;
+
+          if (teams.length === 0) {
+            router.replace("/onboarding/team");
+          } else {
+            router.replace(`/teams/${teams[0].id}`);
+          }
+        }, 600);
       }
-
-      toast.success("Sesión iniciada correctamente", {
-        transition: Slide,
-      });
-
-      setTimeout(() => {
-        router.replace("/dashboard");
-      }, 600);
-
-    } catch (error) {
+    } catch {
       toast.error("Error de conexión", {
         transition: Zoom,
       });
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
@@ -97,13 +120,15 @@ export default function LoginPage() {
             {loading ? "Ingresando..." : "Iniciar sesión"}
           </button>
         </form>
+
         <div className={styles.linksContainer}>
-        <p className={styles.linkText}>
-          ¿No tienes cuenta? <Link href="/register">Regístrate</Link>
-        </p>
-        <p className={styles.linkTextPassword}>
-            ¿Olvidaste tu contraseña? <Link href="/forgot-password">Recupérala</Link>
-        </p>
+          <p className={styles.linkText}>
+            ¿No tienes cuenta? <Link href="/register">Regístrate</Link>
+          </p>
+          <p className={styles.linkTextPassword}>
+            ¿Olvidaste tu contraseña?{" "}
+            <Link href="/forgot-password">Recupérala</Link>
+          </p>
         </div>
       </div>
     </div>

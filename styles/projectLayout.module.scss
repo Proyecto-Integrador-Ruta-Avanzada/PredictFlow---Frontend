@@ -1,0 +1,15 @@
+
+.shell {
+  min-height: 100vh;
+  display: flex;
+
+  background: transparent;
+}
+
+.main {
+  flex: 1;
+  min-height: 100vh;
+  padding: 22px;
+  overflow: auto;
+  background: transparent;
+}

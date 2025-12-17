@@ -1,8 +1,8 @@
 "use client";
 
 import { createContext, useContext, useState } from "react";
-import { Invitation } from "@/app/invitations/types";
-import { Member } from "@/app/members/types";
+import { Invitation } from "@/app/teams/[teamId]/projects/[id]/invitations/types";
+import { Member } from "@/app/teams/[teamId]/projects/[id]/members/types";
 
 interface AppContextType {
   invitations: Invitation[];

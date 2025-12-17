@@ -1,0 +1,97 @@
+.container { width: 100%; color: rgba(255,255,255,0.92); }
+.headerRow { display:flex; align-items:center; justify-content:space-between; margin-bottom: 14px; }
+.title { font-size: 28px; font-weight: 800; margin:0; }
+
+.grid { display:grid; grid-template-columns: 1fr 1.3fr; gap: 14px; }
+
+.panel {
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(10px);
+  padding: 14px;
+}
+
+.panelTitle { font-weight: 800; margin-bottom: 10px; }
+
+.sprintCard {
+  display:flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(0,0,0,0.18);
+  margin-bottom: 10px;
+}
+
+.sprintName { font-weight: 800; }
+.meta { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 4px; }
+.desc { font-size: 13px; color: rgba(255,255,255,0.86); margin-top: 8px; }
+
+.badge {
+  margin-left: 8px;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(150,120,255,0.35);
+  background: rgba(120,80,255,0.18);
+}
+
+.sprintActions { display:flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+
+.btn, .btnPrimary {
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 12px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.90);
+  cursor: pointer;
+}
+
+.btnPrimary {
+  border: 1px solid rgba(150,120,255,0.35);
+  background: rgba(120,80,255,0.22);
+  font-weight: 800;
+}
+
+.twoCols { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.subTitle { font-weight: 800; margin: 6px 0 10px; }
+.empty { font-size: 13px; color: rgba(255,255,255,0.75); }
+
+.issueRow {
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  margin-bottom: 8px;
+}
+
+.issueTitle { font-weight: 800; font-size: 13px; }
+.issueMeta { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 4px; }
+.quickAdd {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 10px 0 12px;
+}
+
+.quickInput {
+  flex: 1;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.92);
+  padding: 10px 12px;
+  outline: none;
+}
+
+.quickInput::placeholder {
+  color: rgba(255,255,255,0.45);
+}

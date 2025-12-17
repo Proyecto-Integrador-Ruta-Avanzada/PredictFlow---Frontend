@@ -1,103 +1,53 @@
-import { useState } from "react";
-import type { Task } from "@/lib/mockData";
-import { initialTasks } from "@/lib/mockData";
-import api from "@/lib/api";
+"use client";
 
-const USE_API = Boolean(process.env.NEXT_PUBLIC_API_URL);
+import { useMemo } from "react";
+import { useProject } from "@/context/ProjectContext";
 
-export function useKanban(projectId?: string) {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
-
-  const deleteTask = async (id: string) => {
-    setTasks((prev) => prev.filter((t) => t.id !== id));
-    if (!USE_API) return;
-
-    await api.delete(`/tasks/${id}`);
-  };
-
-  const fetchTasks = async () => {
-    if (!USE_API) return tasks;
-    setTasks([]);
-    const res = await api.get(`/projects/${projectId}/tasks`);
-    setTasks(res.data);
-    return res.data;
-  };
-
-  const sortByOrder = (a: Task, b: Task) => a.order - b.order;
-
-  const getColumns = () => {
-    return {
-      todo: tasks.filter((t) => t.status === "todo").sort(sortByOrder),
-      inprogress: tasks
-        .filter((t) => t.status === "inprogress")
-        .sort(sortByOrder),
-      review: tasks.filter((t) => t.status === "review").sort(sortByOrder),
-      done: tasks.filter((t) => t.status === "done").sort(sortByOrder),
-    };
-  };
-
-  const moveTask = async (
-    taskId: string,
-    newStatus: Task["status"],
-    newIndex: number
-  ) => {
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.id === taskId ? { ...t, status: newStatus, order: newIndex } : t
-      )
-    );
-
-    if (!USE_API) return;
-
-    try {
-      await api.patch(`/tasks/${taskId}`, {
-        status: newStatus,
-        order: newIndex,
-      });
-    } catch (err) {
-      setTasks((prev) =>
-        prev.map((t) =>
-          t.id === taskId
-            ? {
-                ...t,
-                status: prev.find((pt) => pt.id === taskId)?.status || "todo",
-                order: prev.find((pt) => pt.id === taskId)?.order || 0,
-              }
-            : t
-        )
-      );
-      throw err;
-    }
-  };
-  const addTask = async (task: Task) => {
-    const order = tasks.filter((t) => t.status === task.status).length;
-
-    const newTask = { ...task, order };
-
-    if (!USE_API) {
-      setTasks((prev) => [...prev, newTask]);
-      return;
-    }
-
-    const res = await api.post(`/projects/${projectId}/tasks`, newTask);
-    setTasks((prev) => [...prev, res.data]);
-  };
-
-  const updateTask = async (taskId: string, patch: Partial<Task>) => {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, ...patch } : t))
-    );
-    if (!USE_API) return;
-    await api.patch(`/tasks/${taskId}`, patch);
-  };
-
-  return {
+export function useKanban() {
+  const {
     tasks,
-    getColumns,
-    moveTask,
+    activeSprint,
     addTask,
     updateTask,
     deleteTask,
-    fetchTasks,
+    moveTask,
+  } = useProject();
+
+  const boardTasks = useMemo(() => {
+    if (!activeSprint) return [];
+    return tasks
+      .filter((t) => t.sprintId === activeSprint.id)
+      .slice()
+      .sort((a, b) => a.order - b.order);
+  }, [tasks, activeSprint]);
+
+  const getColumns = useMemo(() => {
+    const cols = {
+      todo: [] as typeof boardTasks,
+      inprogress: [] as typeof boardTasks,
+      done: [] as typeof boardTasks,
+    };
+
+    for (const t of boardTasks) {
+      if (t.status === "done") cols.done.push(t);
+      else if (t.status === "inprogress") cols.inprogress.push(t);
+      else cols.todo.push(t);
+    }
+
+    (Object.keys(cols) as Array<keyof typeof cols>).forEach((k) => {
+      cols[k].sort((a, b) => a.order - b.order);
+    });
+
+    return () => cols;
+  }, [boardTasks]);
+
+  return {
+    tasks: boardTasks,
+    activeSprint,
+    getColumns: getColumns(),
+    moveTask,
+    updateTask,
+    deleteTask,
+    addTask,
   };
 }
