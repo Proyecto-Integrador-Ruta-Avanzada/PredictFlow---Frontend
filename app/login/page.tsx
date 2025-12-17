@@ -5,6 +5,13 @@ import { useState } from "react";
 import { toast, Zoom, Slide } from "react-toastify";
 import { useRouter } from "next/navigation";
 import styles from "@/styles/auth.module.scss";
+import { authService } from "@/services/auth.service";
+
+type LoginErrorResponse = {
+  message: string;
+};
+
+type LoginResponse = any | LoginErrorResponse;
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,46 +32,48 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
+
     setLoading(true);
 
     try {
-      // Cambiar esta URL cuando el backend me de el endpoint
-      const res = await fetch("https://tu-backend.com/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+      const data = (await authService.login(form.email, form.password)) as LoginResponse;
 
-      const data = await res.json();
+      const token =
+        data?.token ||
+        data?.accessToken ||
+        data?.jwt ||
+        data?.data?.token ||
+        data?.data?.accessToken;
 
-      if (!res.ok) {
-        toast.error(data.message || "Correo o contraseña incorrectos", {
+      if (!token) {
+        toast.error(data?.message || "No se recibió token del servidor", {
           transition: Zoom,
         });
-        setLoading(false);
         return;
       }
 
-      // Guardar token si el backend lo envía
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-      }
+      localStorage.setItem("token", token);
 
       toast.success("Sesión iniciada correctamente", {
         transition: Slide,
       });
 
       setTimeout(() => {
-        router.replace("/dashboard");
+        router.replace("/onboarding/team");
       }, 600);
+    } catch (error: any) {
+      const backendMsg =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message;
 
-    } catch (error) {
-      toast.error("Error de conexión", {
+      toast.error(backendMsg || "Error de conexión", {
         transition: Zoom,
       });
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
@@ -97,13 +106,15 @@ export default function LoginPage() {
             {loading ? "Ingresando..." : "Iniciar sesión"}
           </button>
         </form>
+
         <div className={styles.linksContainer}>
-        <p className={styles.linkText}>
-          ¿No tienes cuenta? <Link href="/register">Regístrate</Link>
-        </p>
-        <p className={styles.linkTextPassword}>
-            ¿Olvidaste tu contraseña? <Link href="/forgot-password">Recupérala</Link>
-        </p>
+          <p className={styles.linkText}>
+            ¿No tienes cuenta? <Link href="/register">Regístrate</Link>
+          </p>
+          <p className={styles.linkTextPassword}>
+            ¿Olvidaste tu contraseña?{" "}
+            <Link href="/forgot-password">Recupérala</Link>
+          </p>
         </div>
       </div>
     </div>

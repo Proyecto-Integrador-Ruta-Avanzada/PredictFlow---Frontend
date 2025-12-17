@@ -12,7 +12,7 @@
   margin-top: 20px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 61px;
+  gap: 16px;
 }
 
 .card {
@@ -20,8 +20,7 @@
   color: inherit;
 
   padding: 17px;
-  min-height: 200px;
-  min-width: 350px;
+  min-height: 180px;
 
   background: rgb(255, 255, 255);
   border-radius: 12px;
@@ -265,7 +264,6 @@
 }
 
 .modal {
-  background: #fff;
   width: 420px;
   max-width: 90%;
   border-radius: 12px;
@@ -323,4 +321,35 @@
 
 .modalActions button:not(.primary) {
   background: #f3f4f6;
+}
+
+/* ---- Create project (simple page) ---- */
+.formCard {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.06);
+}
+
+.helper {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.subSection {
+  margin-top: 24px;
+}
+
+.subTitle {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.simpleList {
+  margin: 0;
+  padding-left: 18px;
+  color: #0f172a;
 }

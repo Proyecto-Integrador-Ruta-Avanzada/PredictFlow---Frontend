@@ -2,6 +2,16 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### Backend URL
+
+Configura la URL del backend (VPS) en un archivo `.env.local`:
+
+```bash
+NEXT_PUBLIC_API_URL=https://api-pf-backend.xyz
+```
+
+> El token JWT se guarda en `localStorage` como `token` al hacer login.
+
 First, run the development server:
 
 ```bash

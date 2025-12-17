@@ -1,3 +1,5 @@
+import api from "@/lib/api";
+
 export interface VerifyInvitationResponse {
   isValid: boolean;
   isExpired: boolean;
@@ -5,27 +7,30 @@ export interface VerifyInvitationResponse {
   message: string;
 }
 
+/**
+ * Swagger:
+ * - POST   /api/Invitation/invite?email={email}
+ * - GET    /api/Invitation/validate?code={code}&email={email}
+ * - POST   /api/Invitation/accept   (body: string)
+ */
 export const invitationService = {
   invite: async (email: string) => {
-    return fetch("/api/invitations", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email })
-    });
+    const res = await api.post("/api/Invitation/invite", null, { params: { email } });
+    return res.data;
   },
 
   verify: async (code: string, email: string): Promise<VerifyInvitationResponse> => {
-    const res = await fetch(
-      `/api/invitations/verify?code=${code}&email=${email}`
-    );
-    return res.json();
+    const res = await api.get("/api/Invitation/validate", { params: { code, email } });
+    return res.data as VerifyInvitationResponse;
   },
 
-  accept: async (code: string, email: string) => {
-    return fetch("/api/invitations/accept", {
-      method: "POST",
+  /**
+   * El swagger muestra un body string. En la UI lo usamos como "code".
+   */
+  accept: async (code: string) => {
+    const res = await api.post("/api/Invitation/accept", code, {
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code, email })
     });
-  }
+    return res.data;
+  },
 };

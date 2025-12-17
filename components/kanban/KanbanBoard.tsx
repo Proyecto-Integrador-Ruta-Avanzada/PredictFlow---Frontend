@@ -21,25 +21,30 @@ import SortableTask from "./SortableTask";
 import KanbanColumn from "./KanbanColumn";
 import styles from "@/styles/kanban.module.scss";
 
-type Status = "todo" | "inprogress" | "review" | "done";
+type Status = "todo" | "inprogress" | "done";
+
+const COLUMN_TITLES: Record<Status, string> = {
+  todo: "To Do",
+  inprogress: "In Progress",
+  done: "Done",
+};
 
 export default function KanbanBoard() {
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: 5 },
-    })
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
   const {
     tasks,
-    getColumns,
+    activeSprint,
+    getColumns, 
     moveTask,
     updateTask,
     deleteTask,
     addTask,
   } = useKanban();
 
-  const cols = getColumns();
+  const cols = getColumns;
 
   const [selectedTask, setSelectedTask] = useState<any | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -64,20 +69,19 @@ export default function KanbanBoard() {
       estimationHours: 0,
       assignee: "",
       order: cols.todo.length,
+      sprintId: activeSprint ? activeSprint.id : null,
     });
   };
 
   const columnIds: Record<Status, string> = {
     todo: "column-todo",
     inprogress: "column-inprogress",
-    review: "column-review",
     done: "column-done",
   };
 
   const taskIds: Record<Status, string[]> = {
     todo: cols.todo.map((t) => t.id),
     inprogress: cols.inprogress.map((t) => t.id),
-    review: cols.review.map((t) => t.id),
     done: cols.done.map((t) => t.id),
   };
 
@@ -107,19 +111,12 @@ export default function KanbanBoard() {
     if (sourceColumn === targetColumn) {
       const oldIndex = taskIds[sourceColumn].indexOf(activeId);
       const newIndex = taskIds[targetColumn].indexOf(overId);
-
       if (oldIndex === newIndex) return;
 
-      const reordered = arrayMove(
-        taskIds[sourceColumn],
-        oldIndex,
-        newIndex
-      );
-
+      const reordered = arrayMove(taskIds[sourceColumn], oldIndex, newIndex);
       for (let i = 0; i < reordered.length; i++) {
         await updateTask(reordered[i], { order: i });
       }
-
       return;
     }
 
@@ -142,13 +139,15 @@ export default function KanbanBoard() {
       addTask({
         id: taskId,
         ...patch,
-        status: "todo",
+        status: patch.status ?? "todo",
         order: cols.todo.length,
       });
     }
 
     closeDrawer();
   };
+
+  // El tablero funciona incluso si no hay sprint activo (muestra todas las tareas).
 
   return (
     <DndContext
@@ -161,7 +160,7 @@ export default function KanbanBoard() {
           <KanbanColumn
             key={status}
             id={columnIds[status]}
-            title={status.replace(/^\w/, (c) => c.toUpperCase())}
+            title={COLUMN_TITLES[status]}
             count={cols[status].length}
           >
             <SortableContext
@@ -178,10 +177,7 @@ export default function KanbanBoard() {
             </SortableContext>
 
             {status === "todo" && (
-              <button
-                className={styles.addTaskButton}
-                onClick={createNewTask}
-              >
+              <button className={styles.addTaskButton} onClick={createNewTask}>
                 + Nueva tarea
               </button>
             )}

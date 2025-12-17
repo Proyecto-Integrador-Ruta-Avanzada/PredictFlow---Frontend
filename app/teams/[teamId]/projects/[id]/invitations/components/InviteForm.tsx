@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import styles from "@/styles/members/inviteMember.module.scss";
+import { invitationService } from "@/services/invitation.service";
+import { useAppContext } from "@/context/AppContext";
 
 export default function InviteForm() {
+  const { addInvitation } = useAppContext();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -18,7 +21,8 @@ export default function InviteForm() {
     setLoading(true);
 
     try {
-      console.log("Invitación enviada a:", email);
+      await invitationService.invite(email);
+      addInvitation(email);
       setEmail("");
     } catch {
       setError("Error al enviar invitación");
